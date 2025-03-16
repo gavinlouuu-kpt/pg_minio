@@ -79,3 +79,4 @@ A simple web application built with Streamlit that allows users to browse, view,
 
 - Click the "Download" button below any image to download it to your local machine
 
+cp .env.example .env
