@@ -20,18 +20,46 @@ def main():
     with st.sidebar:
         st.header("MinIO Connection")
         endpoint = st.text_input("Endpoint", value="localhost:9000")
-        access_key = st.text_input("Access Key", value="minioadmin")
-        secret_key = st.text_input("Secret Key", value="minioadmin", type="password")
+        access_key = st.text_input("Access Key", value="mibadmin")
+        secret_key = st.text_input("Secret Key", value="cuhkminio", type="password")
         secure = st.checkbox("Secure (HTTPS)", value=False)
         
-        if st.button("Connect"):
+        if st.button("Connect to MinIO"):
             if not endpoint or not access_key or not secret_key:
-                st.error("Please fill in all connection details")
+                st.error("Please fill in all MinIO connection details")
             else:
                 st.session_state.client = create_minio_client(endpoint, access_key, secret_key, secure)
                 st.session_state.connected = True
                 st.success("Connected to MinIO")
                 st.session_state.buckets = list_buckets(st.session_state.client)
+        
+        # Add PostgreSQL connection section
+        st.markdown("---")  # Add a separator
+        st.header("PostgreSQL Connection")
+        pg_host = st.text_input("Host", value="localhost")
+        pg_port = st.text_input("Port", value="5432")
+        pg_database = st.text_input("Database")
+        pg_user = st.text_input("Username")
+        pg_password = st.text_input("Password", type="password")
+        
+        if st.button("Connect to PostgreSQL"):
+            if not all([pg_host, pg_port, pg_database, pg_user, pg_password]):
+                st.error("Please fill in all PostgreSQL connection details")
+            else:
+                try:
+                    import psycopg2
+                    conn = psycopg2.connect(
+                        host=pg_host,
+                        port=pg_port,
+                        database=pg_database,
+                        user=pg_user,
+                        password=pg_password
+                    )
+                    st.session_state.pg_conn = conn
+                    st.session_state.pg_connected = True
+                    st.success("Connected to PostgreSQL")
+                except Exception as e:
+                    st.error(f"Failed to connect to PostgreSQL: {str(e)}")
     
     # Main content
     if 'connected' in st.session_state and st.session_state.connected:
@@ -179,7 +207,7 @@ def main():
             
             # Upload new image
             with st.expander("Upload New Image"):
-                upload_file = st.file_uploader("Choose an image file", type=["jpg", "jpeg", "png", "gif"])
+                upload_file = st.file_uploader("Choose an image file", type=["jpg", "jpeg", "png", "gif", "tiff", "tif"])
                 upload_path = st.text_input("Object name (optional)")
                 
                 if st.button("Upload") and upload_file is not None:
